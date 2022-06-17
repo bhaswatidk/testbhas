@@ -1,1 +1,7 @@
-this is the development branch
+<<<<<<< HEAD
+this is the dev branch
+this is the test on 17.06.2022
+=======
+this is the dev branch
+this is the to test on 17.06.2022
+>>>>>>> main
