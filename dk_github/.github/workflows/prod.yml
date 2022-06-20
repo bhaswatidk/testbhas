@@ -1,0 +1,50 @@
+name: CI
+on:
+  push:
+    branches: 
+      - main
+jobs:
+  build:
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }} 
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+      NEXT_PUBLIC_FIREBASE_PUBLIC_API_KEY: AIzaSyD7pmaWhFGnM6Eh4IsOpdlzW6sCB2XPZvs
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: dk-learning-prod.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: dk-learning-prod 
+      NEXT_PUBLIC_DOMAIN: https://learning.dk.com
+      FIREBASE_PRIVATE_KEY: ${{ secrets.SECRET_FIREBASE_PRIVATE_KEY_PROD }}
+      FIREBASE_CLIENT_EMAIL: firebase-adminsdk-uug5z@dk-learning-prod.iam.gserviceaccount.com
+      NEXT_PUBLIC_GTM_PROPERTY: GTM-TCL4D3K
+      NEXT_PUBLIC_GTAG_PROPERTY: UA-209946048-2
+      NEXT_PUBLIC_COOKIE_SECURE: true
+      NEXT_PUBLIC_CMS_API_KEY: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImdjbXMtbWFpbi1wcm9kdWN0aW9uIn0.eyJ2ZXJzaW9uIjozLCJpYXQiOjE2MzM0NDkxMjQsImF1ZCI6WyJodHRwczovL2FwaS1ldS1jZW50cmFsLTEuZ3JhcGhjbXMuY29tL3YyL2NrdThkdHlpbjNvMjIwMXhoNTF0bmQ5emovbWFzdGVyIiwiaHR0cHM6Ly9tYW5hZ2VtZW50LW5leHQuZ3JhcGhjbXMuY29tIl0sImlzcyI6Imh0dHBzOi8vbWFuYWdlbWVudC5ncmFwaGNtcy5jb20vIiwic3ViIjoiMTAyOTE5ZGItN2I1Yy00NmQ0LWJjZTYtNzQwNTYzNjhmMmMyIiwianRpIjoiY2t1ZTlmbXN1N253eDAxeG5lOXNuYjhiaCJ9.XTMG_AFIYUYS52A07RELND_PyzJlGCQ7NgJkrShQo_nJPJeJva1KA-JW-N29t8DPLeFxq71IC56P7tmd-pV-yKQqEKdnnJpBLkqzNwBdpRIIYBFHKiLSqylTDI3RFvVWtRn5g0OYfSZ1NsfFHddwz2x2E8gLM7CVikfXLGuhlF2_jYS7ry-d9wtZ0u-HM9CwBBvWwdZixUJtB1W7b5F89tkc0ZDMi5zKcoG_WuLiVla_rju60mTP1gfESg3aPysZlWEUL58J_VqjjnMA4CJ4BgJgJ8Kdw0mXquYfqbFhC_7EyHK8d7H8ZikUY0Er5J6pBbMMF8BlQL6gtEc-FV9Bp1352ANyPWfffLb5JRybyg9Z7NRnWCaSFtXiyiGQEvfFI0bhENLnHoQ8nfEfR3Wc0iulHM2hrx2y31GAtRls2QC8sFSYUH735TogmOGry-oxUjl54R0gzbY2MNdicCSUOMUj8YkTcE4Gleq37AkXPJtMDQG78BopQDa1TjsP8dJwcdnZqPNXEwjThswLd0kVUjVxWskqn28A_I1mYarXkhcOBwYCJ0lKmssKVtx3DFZHGKCp0LzX1n6EM5VKxS3NmRl5d3Hot9mofblEzHG5lGZyAHd1THIvdfZWp07Ihu4PXxFRaMmgJmmgDMdHobShgHZ5P8FbjT469rbC7ljCR_4
+      NEXT_PUBLIC_CMS_ENDPOINT: https://api-eu-central-1.graphcms.com/v2/cku8dtyin3o2201xh51tnd9zj/master
+      NEXT_PUBLIC_ALGOLIA_APP_ID: 2EY1E9WGMG
+      NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY: d9b57cb726f229a8062ecec2fd2e4889
+      DEPLOYMENT_BUCKET_NAME: grey8bq-4v069fl
+      CLOUDFRONT_DISTRIBUTION_ID: E1DG7L2R5J8XKX
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Install NPM dependencies
+        run: npm install
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: eu-west-1
+
+      - name: Download `.serverless` state from S3
+        run: aws s3 sync s3://dk-learning-prod-serverless-artifacts/prod/.serverless .serverless
+
+      - name: Deploy Next.js app
+        run: npx serverless@2.72.2
+        
+      - name: Upload `.serverless` state to S3
+        run: aws s3 sync .serverless s3://dk-learning-prod-serverless-artifacts/prod/.serverless
